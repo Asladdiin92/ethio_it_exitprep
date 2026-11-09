@@ -1,0 +1,121 @@
+{
+  "institution": "Haramaya University Department of Information Technology",
+  "program": "BSc in Information Technology",
+  "blueprintReference": "FDRE MoE National Exit Examination Blueprint",
+  "version": "2.0",
+  "themes": [
+    {
+      "id": "T1",
+      "code": "PROG",
+      "title": "Programming & Software Engineering",
+      "blueprintSharePct": 23.0,
+      "priorityRank": 1
+    },
+    {
+      "id": "T2",
+      "code": "DATA",
+      "title": "Data Management & Information Systems",
+      "blueprintSharePct": 22.0,
+      "priorityRank": 2
+    },
+    {
+      "id": "T3",
+      "code": "NET",
+      "title": "Computer Networking & Security",
+      "blueprintSharePct": 20.0,
+      "priorityRank": 3
+    },
+    {
+      "id": "T4",
+      "code": "WEB",
+      "title": "Web & Mobile Development",
+      "blueprintSharePct": 18.0,
+      "priorityRank": 4
+    },
+    {
+      "id": "T5",
+      "code": "SYS",
+      "title": "System Analysis & Administration",
+      "blueprintSharePct": 17.0,
+      "priorityRank": 5
+    }
+  ],
+  "samplePastExamQuestions": [
+    {
+      "id": "Q_2017_OOP_01",
+      "courseCode": "ITec2051",
+      "examYear": 2017,
+      "sourceType": "NATIONAL_EXIT_EXAM",
+      "difficultyTier": 1,
+      "priorityWeight": 85.0,
+      "bloomDomain": "cognitive",
+      "stemTitle": "Object-Oriented Encapsulation",
+      "stemBody": "In object-oriented programming, which mechanism restricts direct access to some of an object's components?",
+      "generalExplanation": "Encapsulation prevents client code from directly seeing and mutating an object's internal state.",
+      "options": [
+        {
+          "key": "A",
+          "text": "Inheritance",
+          "isCorrect": false,
+          "rationale": "Inheritance establishes an is-a hierarchy, not access restriction."
+        },
+        {
+          "key": "B",
+          "text": "Encapsulation",
+          "isCorrect": true,
+          "rationale": "Encapsulation bundles data with functions and restricts direct outside access via private/protected scopes."
+        },
+        {
+          "key": "C",
+          "text": "Polymorphism",
+          "isCorrect": false,
+          "rationale": "Polymorphism allows objects to take multiple forms at runtime."
+        },
+        {
+          "key": "D",
+          "text": "Dynamic Linking",
+          "isCorrect": false,
+          "rationale": "Dynamic linking resolves module references at load time."
+        }
+      ]
+    },
+    {
+      "id": "Q_2018_NET_01",
+      "courseCode": "ITec3031",
+      "examYear": 2018,
+      "sourceType": "NATIONAL_EXIT_EXAM",
+      "difficultyTier": 2,
+      "priorityWeight": 88.0,
+      "bloomDomain": "cognitive",
+      "stemTitle": "OSI Transport Layer Protocol",
+      "stemBody": "Which protocol operates at the Transport layer to provide reliable, connection-oriented data transmission?",
+      "generalExplanation": "TCP provides reliable, sequenced delivery with three-way handshaking and error checking.",
+      "options": [
+        {
+          "key": "A",
+          "text": "User Datagram Protocol (UDP)",
+          "isCorrect": false,
+          "rationale": "UDP is connectionless and does not guarantee delivery."
+        },
+        {
+          "key": "B",
+          "text": "Internet Protocol (IP)",
+          "isCorrect": false,
+          "rationale": "IP operates at the Network Layer (Layer 3)."
+        },
+        {
+          "key": "C",
+          "text": "Transmission Control Protocol (TCP)",
+          "isCorrect": true,
+          "rationale": "TCP provides full-duplex, sequence-controlled, reliable communication."
+        },
+        {
+          "key": "D",
+          "text": "Address Resolution Protocol (ARP)",
+          "isCorrect": false,
+          "rationale": "ARP operates between the Data Link and Network layers."
+        }
+      ]
+    }
+  ]
+}

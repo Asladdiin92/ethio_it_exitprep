@@ -11,15 +11,23 @@ import 'package:ethio_it_exitprep/domain/repositories/curriculum_repository.dart
 class SyncService {
   final SyncApiClient apiClient;
   final Connectivity connectivity;
+  final ProgramThemeRepository themeRepo;
+  final CourseRepository courseRepo;
+  final ChapterRepository chapterRepo;
   final StudyMaterialRepository materialRepo;
   final QuestionRepository questionRepo;
+  final QuestionOptionRepository questionOptionRepo;
   final StudentProgressRepository progressRepo;
 
   SyncService({
     required this.apiClient,
     Connectivity? connectivity,
+    required this.themeRepo,
+    required this.courseRepo,
+    required this.chapterRepo,
     required this.materialRepo,
     required this.questionRepo,
+    required this.questionOptionRepo,
     required this.progressRepo,
   }) : connectivity = connectivity ?? Connectivity();
 
@@ -39,19 +47,25 @@ class SyncService {
       var cycleSucceeded = true;
 
       // 1. Upstream: Push unsynced exam attempts
-      final unsyncedAttempts = await progressRepo.getUnsyncedAttempts(studentId);
+      final unsyncedAttempts = await progressRepo.getUnsyncedAttempts(
+        studentId,
+      );
       if (unsyncedAttempts.isNotEmpty) {
-        final mutations = unsyncedAttempts.map((a) => {
-              'entityType': 'exam_attempt',
-              'attemptId': a.attemptId,
-              'studentId': a.studentId,
-              'startedAt': a.startedAt.toIso8601String(),
-              'scorePercent': a.scorePercent,
-              'totalQuestions': a.totalQuestions,
-              'correctAnswers': a.correctAnswers,
-              'completedAt': a.completedAt?.toIso8601String(),
-              'answerMap': a.answerMap,
-            }).toList();
+        final mutations = unsyncedAttempts
+            .map(
+              (a) => {
+                'entityType': 'exam_attempt',
+                'attemptId': a.attemptId,
+                'studentId': a.studentId,
+                'startedAt': a.startedAt.toIso8601String(),
+                'scorePercent': a.scorePercent,
+                'totalQuestions': a.totalQuestions,
+                'correctAnswers': a.correctAnswers,
+                'completedAt': a.completedAt?.toIso8601String(),
+                'answerMap': a.answerMap,
+              },
+            )
+            .toList();
 
         final pushResponse = await apiClient.pushOutbox(mutations);
         for (final attemptId in pushResponse.syncedAttemptIds) {
@@ -66,7 +80,15 @@ class SyncService {
       final watermark = lastSyncTime ?? currentProgress.lastSynced;
       final delta = await apiClient.pullDelta(watermark);
 
-      // Merge updated study materials
+      for (final theme in delta.themes) {
+        await themeRepo.upsert(theme);
+      }
+      for (final course in delta.courses) {
+        await courseRepo.upsert(course);
+      }
+      for (final chapter in delta.chapters) {
+        await chapterRepo.upsert(chapter);
+      }
       for (final mJson in delta.updatedMaterials) {
         final material = StudyMaterial.fromJson(mJson);
         await materialRepo.upsert(material);
@@ -77,20 +99,24 @@ class SyncService {
         final question = Question.fromJson(qJson);
         await questionRepo.upsert(question);
       }
+      for (final option in delta.questionOptions) {
+        await questionOptionRepo.upsert(option);
+      }
 
       // Remove deleted entities if any
       for (final deleted in delta.deletedEntities) {
         if (deleted.entityType == 'material') {
           await materialRepo.deleteById(deleted.entityId);
         } else if (deleted.entityType == 'question') {
+          await questionOptionRepo.deleteByQuestionId(deleted.entityId);
           await questionRepo.deleteById(deleted.entityId);
         }
       }
 
       // Update student last_synced timestamp
-      await progressRepo.saveProgress(currentProgress.copyWith(
-        lastSynced: delta.serverTimestamp,
-      ));
+      await progressRepo.saveProgress(
+        currentProgress.copyWith(lastSynced: delta.serverTimestamp),
+      );
 
       return cycleSucceeded;
     } catch (_) {

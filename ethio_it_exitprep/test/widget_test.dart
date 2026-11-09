@@ -8,22 +8,22 @@ import 'package:ethio_it_exitprep/data/local/database.dart';
 import 'package:ethio_it_exitprep/main.dart';
 
 void main() {
-  testWidgets('App renders ExamHubScreen with National Mock button', (WidgetTester tester) async {
+  testWidgets('App renders the exam hub with sync and mock exam actions', (
+    WidgetTester tester,
+  ) async {
     final db = await AppDatabase.createInMemory();
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          appDatabaseProvider.overrideWithValue(db),
-        ],
+        overrides: [appDatabaseProvider.overrideWithValue(db)],
         child: const EthioExitPrepApp(),
       ),
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Exam Simulator & Quizzes'), findsOneWidget);
-    expect(find.text('National Mock Exam'), findsOneWidget);
-    expect(find.text('Custom Practice Drill'), findsOneWidget);
+    expect(find.text('BSc IT Exit Exam'), findsOneWidget);
+    expect(find.text('Start a mock exam'), findsOneWidget);
+    expect(find.byTooltip('Sync curriculum and attempts'), findsOneWidget);
 
     await db.close();
   });

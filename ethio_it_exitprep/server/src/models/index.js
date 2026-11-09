@@ -16,7 +16,7 @@ const ThemeSchema = new mongoose.Schema({
 
 // 2. Course
 const CourseSchema = new mongoose.Schema({
-  id: { type: String, required: true, unique: true },
+  id: { type: String, required: true },
   themeId: { type: String, required: true },
   courseCode: { type: String, required: true },
   title: { type: String, required: true },
@@ -28,10 +28,12 @@ const CourseSchema = new mongoose.Schema({
   priorityLevel: { type: String, default: 'P2' },
   customAttributes: { type: mongoose.Schema.Types.Mixed, default: {} },
 }, { timestamps: true });
+CourseSchema.index({ id: 1 }, { unique: true });
+CourseSchema.index({ courseCode: 1 }, { unique: true });
 
 // 3. Chapter
 const ChapterSchema = new mongoose.Schema({
-  id: { type: String, required: true, unique: true },
+  id: { type: String, required: true },
   courseId: { type: String, required: true },
   title: { type: String, required: true },
   chapterNumber: { type: Number, required: true },
@@ -40,10 +42,11 @@ const ChapterSchema = new mongoose.Schema({
   estMinutes: { type: Number, default: 60 },
   customAttributes: { type: mongoose.Schema.Types.Mixed, default: {} },
 }, { timestamps: true });
+ChapterSchema.index({ id: 1 }, { unique: true });
 
 // 4. StudyMaterial
 const StudyMaterialSchema = new mongoose.Schema({
-  id: { type: String, required: true, unique: true },
+  id: { type: String, required: true },
   chapterId: { type: String, required: true },
   title: { type: String, required: true },
   description: String,
@@ -54,6 +57,7 @@ const StudyMaterialSchema = new mongoose.Schema({
   tags: { type: [String], default: [] },
   customAttributes: { type: mongoose.Schema.Types.Mixed, default: {} },
 }, { timestamps: true });
+StudyMaterialSchema.index({ id: 1 }, { unique: true });
 
 // 5. ContentRelation
 const ContentRelationSchema = new mongoose.Schema({
@@ -68,7 +72,7 @@ const ContentRelationSchema = new mongoose.Schema({
 
 // 6. Question
 const QuestionSchema = new mongoose.Schema({
-  id: { type: String, required: true, unique: true },
+  id: { type: String, required: true },
   courseId: { type: String, required: true },
   chapterId: { type: String, required: true },
   linkedMaterialId: String,
@@ -84,6 +88,7 @@ const QuestionSchema = new mongoose.Schema({
   generalExplanation: { type: String, required: true },
   customAttributes: { type: mongoose.Schema.Types.Mixed, default: {} },
 }, { timestamps: true });
+QuestionSchema.index({ id: 1 }, { unique: true });
 
 // 7. QuestionOption
 const QuestionOptionSchema = new mongoose.Schema({

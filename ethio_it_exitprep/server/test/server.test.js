@@ -77,6 +77,50 @@ test('Delta-Sync REST API Test Suite', async (t) => {
     assert.equal(res.status, 401);
   });
 
+  await t.test('development sync mode allows local calls without a token', async () => {
+    const previousNodeEnv = process.env.NODE_ENV;
+    const previousDevMode = process.env.SYNC_DEV_MODE;
+    process.env.NODE_ENV = 'development';
+    process.env.SYNC_DEV_MODE = 'true';
+    try {
+      const res = await fetch(`${baseUrl}/api/v1/sync/push`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mutations: [] }),
+      });
+      assert.equal(res.status, 200);
+      assert.equal((await res.json()).syncedCount, 0);
+    } finally {
+      if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+      else process.env.NODE_ENV = previousNodeEnv;
+      if (previousDevMode === undefined) delete process.env.SYNC_DEV_MODE;
+      else process.env.SYNC_DEV_MODE = previousDevMode;
+    }
+  });
+
+  await t.test('development sync mode still rejects an invalid supplied token', async () => {
+    const previousNodeEnv = process.env.NODE_ENV;
+    const previousDevMode = process.env.SYNC_DEV_MODE;
+    process.env.NODE_ENV = 'development';
+    process.env.SYNC_DEV_MODE = 'true';
+    try {
+      const res = await fetch(`${baseUrl}/api/v1/sync/push`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer invalid-token',
+        },
+        body: JSON.stringify({ mutations: [] }),
+      });
+      assert.equal(res.status, 401);
+    } finally {
+      if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+      else process.env.NODE_ENV = previousNodeEnv;
+      if (previousDevMode === undefined) delete process.env.SYNC_DEV_MODE;
+      else process.env.SYNC_DEV_MODE = previousDevMode;
+    }
+  });
+
   await t.test('pull rejects malformed watermarks before querying the database', async () => {
     const res = await fetch(`${baseUrl}/api/v1/sync/pull?since=invalid`, {
       headers: { Authorization: `Bearer ${tokenFor('STUDENT_01')}` },

@@ -55,8 +55,14 @@ abstract class StudyMaterialRepository {
 
 // ── ContentRelation ───────────────────────────────────────────────────────────
 abstract class ContentRelationRepository {
-  Future<List<ContentRelation>> getRelationsFrom(String sourceId, {RelationType? type});
-  Future<List<ContentRelation>> getRelationsTo(String targetId, {RelationType? type});
+  Future<List<ContentRelation>> getRelationsFrom(
+    String sourceId, {
+    RelationType? type,
+  });
+  Future<List<ContentRelation>> getRelationsTo(
+    String targetId, {
+    RelationType? type,
+  });
   Future<void> upsert(ContentRelation relation);
   Future<void> upsertAll(List<ContentRelation> relations);
 }
@@ -82,6 +88,7 @@ abstract class QuestionOptionRepository {
   Future<List<QuestionOption>> getByQuestion(String questionId);
   Future<void> upsert(QuestionOption option);
   Future<void> upsertAll(List<QuestionOption> options);
+  Future<void> deleteByQuestionId(String questionId);
 }
 
 // ── StudentProgress ───────────────────────────────────────────────────────────

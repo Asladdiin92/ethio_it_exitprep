@@ -5,10 +5,12 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js",
+    "dev": "nodemon dev.js",
     "seed": "node seed.js",
     "migrate": "node seed.js",
-    "test": "node --test test/server.test.js"
+    "ingest": "node ingest_courses.js",
+    "seed:questions": "node seed_questions.js",
+    "test": "node --test test/*.test.js"
   },
   "dependencies": {
     "express": "^4.19.2",

@@ -26,6 +26,47 @@ class MockOfflineConnectivity implements Connectivity {
       Stream.value([ConnectivityResult.none]);
 }
 
+class MockOnlineConnectivity implements Connectivity {
+  @override
+  Future<List<ConnectivityResult>> checkConnectivity() async {
+    return [ConnectivityResult.wifi];
+  }
+
+  @override
+  Stream<List<ConnectivityResult>> get onConnectivityChanged =>
+      Stream.value([ConnectivityResult.wifi]);
+}
+
+class CapturingSyncApiClient extends SyncApiClient {
+  List<Map<String, dynamic>> pushedMutations = [];
+
+  @override
+  Future<SyncPushResponse> pushOutbox(
+    List<Map<String, dynamic>> mutations,
+  ) async {
+    pushedMutations = mutations;
+    return SyncPushResponse(
+      syncedAttemptIds: mutations
+          .map((mutation) => mutation['attemptId'] as String)
+          .toList(),
+      rejected: const [],
+    );
+  }
+
+  @override
+  Future<SyncDeltaResponse> pullDelta(DateTime since) async =>
+      SyncDeltaResponse(
+        serverTimestamp: DateTime(2026, 11, 9),
+        updatedThemes: const [],
+        updatedCourses: const [],
+        updatedChapters: const [],
+        updatedMaterials: const [],
+        updatedQuestions: const [],
+        updatedQuestionOptions: const [],
+        deletedEntities: const [],
+      );
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late AppDatabase db;
@@ -35,6 +76,7 @@ void main() {
   late LocalStudentProgressRepository progressRepo;
   late LocalStudyMaterialRepository materialRepo;
   late LocalQuestionRepository questionRepo;
+  late LocalQuestionOptionRepository questionOptionRepo;
   late ReadinessAnalyticsService analyticsService;
 
   final now = DateTime(2026, 11, 9);
@@ -47,6 +89,7 @@ void main() {
     progressRepo = LocalStudentProgressRepository(db);
     materialRepo = LocalStudyMaterialRepository(db);
     questionRepo = LocalQuestionRepository(db);
+    questionOptionRepo = LocalQuestionOptionRepository(db);
 
     // Seed baseline themes and courses
     final seeder = SeedDataLoader(themeRepo: themeRepo, courseRepo: courseRepo);
@@ -65,29 +108,33 @@ void main() {
   group('Competency & Readiness Analytics Engine', () {
     test('Calculates weighted readiness and smart priority queue', () async {
       // Add chapters with different priority scores
-      await chapterRepo.upsert(Chapter(
-        id: 'CH01',
-        courseId: 'C01', // OOP (Theme T1)
-        title: 'OOP Fundamentals',
-        chapterNumber: 1,
-        sequenceOrder: 1,
-        priorityScore: 90.0,
-        estMinutes: 45,
-        createdAt: now,
-        updatedAt: now,
-      ));
+      await chapterRepo.upsert(
+        Chapter(
+          id: 'CH01',
+          courseId: 'C01', // OOP (Theme T1)
+          title: 'OOP Fundamentals',
+          chapterNumber: 1,
+          sequenceOrder: 1,
+          priorityScore: 90.0,
+          estMinutes: 45,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
 
-      await chapterRepo.upsert(Chapter(
-        id: 'CH02',
-        courseId: 'C01',
-        title: 'Inheritance Details',
-        chapterNumber: 2,
-        sequenceOrder: 2,
-        priorityScore: 50.0,
-        estMinutes: 45,
-        createdAt: now,
-        updatedAt: now,
-      ));
+      await chapterRepo.upsert(
+        Chapter(
+          id: 'CH02',
+          courseId: 'C01',
+          title: 'Inheritance Details',
+          chapterNumber: 2,
+          sequenceOrder: 2,
+          priorityScore: 50.0,
+          estMinutes: 45,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
 
       // Record mastery: CH01 has 80% mastery, CH02 has 10% mastery
       await progressRepo.updateChapterMastery(
@@ -149,31 +196,83 @@ void main() {
             'tags': ['cloud'],
             'createdAt': '2026-11-09T18:00:00.000Z',
             'updatedAt': '2026-11-09T18:00:00.000Z',
-          }
+          },
         ],
         'updatedQuestions': [],
+        'updatedQuestionOptions': [],
         'deletedIds': ['OLD_ITEM_01'],
       };
 
       final response = SyncDeltaResponse.fromJson(json);
       expect(response.updatedMaterials.length, 1);
       expect(response.updatedMaterials.first['title'], 'Cloud Note');
+      expect(response.updatedThemes, isEmpty);
+      expect(response.updatedCourses, isEmpty);
+      expect(response.updatedChapters, isEmpty);
+      expect(response.updatedQuestionOptions, isEmpty);
       expect(response.deletedEntities.first.entityId, 'OLD_ITEM_01');
     });
   });
 
   group('SyncService offline fallback', () {
-    test('Gracefully skips sync when device is offline without throwing', () async {
-      final syncService = SyncService(
-        apiClient: SyncApiClient(),
-        connectivity: MockOfflineConnectivity(),
-        materialRepo: materialRepo,
-        questionRepo: questionRepo,
-        progressRepo: progressRepo,
-      );
+    test(
+      'Gracefully skips sync when device is offline without throwing',
+      () async {
+        final syncService = SyncService(
+          apiClient: SyncApiClient(),
+          connectivity: MockOfflineConnectivity(),
+          themeRepo: themeRepo,
+          courseRepo: courseRepo,
+          chapterRepo: chapterRepo,
+          materialRepo: materialRepo,
+          questionRepo: questionRepo,
+          questionOptionRepo: questionOptionRepo,
+          progressRepo: progressRepo,
+        );
 
-      final result = await syncService.runSyncCycle('STUDENT_01');
-      expect(result, false); // Returns false cleanly indicating offline, no crash
-    });
+        final result = await syncService.runSyncCycle('STUDENT_01');
+        expect(
+          result,
+          false,
+        ); // Returns false cleanly indicating offline, no crash
+      },
+    );
+
+    test(
+      'pushes the original startedAt timestamp with an unsynced attempt',
+      () async {
+        final startedAt = DateTime(2026, 11, 8, 14, 30);
+        await progressRepo.recordAttempt(
+          ExamAttempt(
+            attemptId: 'ATTEMPT_SYNC_TEST',
+            studentId: 'STUDENT_01',
+            startedAt: startedAt,
+            completedAt: DateTime(2026, 11, 8, 15),
+            totalQuestions: 10,
+            correctAnswers: 7,
+            scorePercent: 70,
+            answerMap: const {},
+          ),
+        );
+        final apiClient = CapturingSyncApiClient();
+        final syncService = SyncService(
+          apiClient: apiClient,
+          connectivity: MockOnlineConnectivity(),
+          themeRepo: themeRepo,
+          courseRepo: courseRepo,
+          chapterRepo: chapterRepo,
+          materialRepo: materialRepo,
+          questionRepo: questionRepo,
+          questionOptionRepo: questionOptionRepo,
+          progressRepo: progressRepo,
+        );
+
+        expect(await syncService.runSyncCycle('STUDENT_01'), isTrue);
+        expect(
+          apiClient.pushedMutations.single['startedAt'],
+          startedAt.toIso8601String(),
+        );
+      },
+    );
   });
 }

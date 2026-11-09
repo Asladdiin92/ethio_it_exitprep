@@ -19,10 +19,7 @@ import 'package:ethio_it_exitprep/presentation/study/course_reading_material_scr
 final appRouter = GoRouter(
   initialLocation: '/exam',
   routes: [
-    GoRoute(
-      path: '/',
-      redirect: (context, state) => '/exam',
-    ),
+    GoRoute(path: '/', redirect: (context, state) => '/exam'),
     GoRoute(
       path: '/study',
       name: 'study',
@@ -47,7 +44,9 @@ final appRouter = GoRouter(
               future: repo.getById(id),
               builder: (c, snap) {
                 if (snap.connectionState == ConnectionState.waiting) {
-                  return const Scaffold(body: Center(child: CircularProgressIndicator()));
+                  return const Scaffold(
+                    body: Center(child: CircularProgressIndicator()),
+                  );
                 }
                 final material = snap.data;
                 if (material == null) {
@@ -105,37 +104,3 @@ final appRouter = GoRouter(
     ),
   ],
 );
-
-class _AppShellPlaceholder extends StatelessWidget {
-  final String title;
-  const _AppShellPlaceholder({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.school, size: 64, color: Theme.of(context).colorScheme.primary),
-              const SizedBox(height: 16),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'EthioIT ExitPrep • Haramaya University BSc IT',
-                style: TextStyle(color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

@@ -4,7 +4,16 @@
 const express = require('express');
 const cors = require('cors');
 const crypto = require('node:crypto');
-const { StudyMaterial, Question, ExamAttempt, DeletedEntity } = require('./models');
+const {
+  Theme,
+  Course,
+  Chapter,
+  StudyMaterial,
+  Question,
+  QuestionOption,
+  ExamAttempt,
+  DeletedEntity,
+} = require('./models');
 
 const app = express();
 app.use(cors({ origin: process.env.CORS_ORIGIN || false }));
@@ -14,6 +23,12 @@ function authenticate(req, res, next) {
   const secret = process.env.SYNC_API_SECRET;
   const authorization = req.get('authorization') || '';
   const parts = authorization.startsWith('Bearer ') ? authorization.slice(7).split('.') : [];
+
+  if (!authorization && process.env.NODE_ENV === 'development' &&
+      process.env.SYNC_DEV_MODE === 'true') {
+    req.studentId = 'LOCAL_STUDENT';
+    return next();
+  }
 
   if (!secret || parts.length !== 3) {
     return res.status(401).json({ error: 'Authentication required' });
@@ -84,16 +99,24 @@ app.get('/api/v1/sync/pull', authenticate, async (req, res) => {
     const serverTimestamp = new Date();
 
     // Query items updated after the watermark
+    const updatedThemes = await Theme.find({ updatedAt: { $gt: since } }).lean();
+    const updatedCourses = await Course.find({ updatedAt: { $gt: since } }).lean();
+    const updatedChapters = await Chapter.find({ updatedAt: { $gt: since } }).lean();
     const updatedMaterials = await StudyMaterial.find({ updatedAt: { $gt: since } }).lean();
     const updatedQuestions = await Question.find({ updatedAt: { $gt: since } }).lean();
+    const updatedQuestionOptions = await QuestionOption.find({ updatedAt: { $gt: since } }).lean();
     const deletedEntities = await DeletedEntity.find({ deletedAt: { $gt: since } })
       .select({ _id: 0, entityType: 1, entityId: 1 })
       .lean();
 
     res.json({
       serverTimestamp: serverTimestamp.toISOString(),
+      updatedThemes,
+      updatedCourses,
+      updatedChapters,
       updatedMaterials,
       updatedQuestions,
+      updatedQuestionOptions,
       deletedEntities,
     });
   } catch (error) {

@@ -2,6 +2,8 @@
 // EthioIT ExitPrep — Application entry point.
 // Offline-first Flutter app preparing Ethiopian BSc IT students for national exit exams.
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ethio_it_exitprep/core/providers/repository_providers.dart';
@@ -15,9 +17,7 @@ void main() async {
 
   // Seed baseline curriculum if first launch
   final container = ProviderContainer(
-    overrides: [
-      appDatabaseProvider.overrideWithValue(db),
-    ],
+    overrides: [appDatabaseProvider.overrideWithValue(db)],
   );
 
   final seeder = SeedDataLoader(
@@ -35,6 +35,14 @@ void main() async {
       child: const EthioExitPrepApp(),
     ),
   );
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (container.read(syncEnabledProvider)) {
+      unawaited(
+        container.read(syncServiceProvider).runSyncCycle('LOCAL_STUDENT'),
+      );
+    }
+  });
 }
 
 class EthioExitPrepApp extends StatelessWidget {
@@ -54,18 +62,40 @@ class EthioExitPrepApp extends StatelessWidget {
           secondary: const Color(0xFFD97706), // Academic Amber
           brightness: Brightness.light,
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           color: Colors.white,
           elevation: 0,
           margin: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
         ),
-        dividerTheme: const DividerThemeData(space: 1, thickness: 1, color: Color(0xFFE2E9E5)),
+        dividerTheme: const DividerThemeData(
+          space: 1,
+          thickness: 1,
+          color: Color(0xFFE2E9E5),
+        ),
         textTheme: const TextTheme(
-          headlineSmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: Color(0xFF17211D)),
-          titleLarge: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: Color(0xFF17211D)),
-          titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF17211D)),
-          bodyMedium: TextStyle(fontSize: 14, height: 1.4, color: Color(0xFF53615B)),
+          headlineSmall: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            color: Color(0xFF17211D),
+          ),
+          titleLarge: TextStyle(
+            fontSize: 19,
+            fontWeight: FontWeight.w800,
+            color: Color(0xFF17211D),
+          ),
+          titleMedium: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF17211D),
+          ),
+          bodyMedium: TextStyle(
+            fontSize: 14,
+            height: 1.4,
+            color: Color(0xFF53615B),
+          ),
         ),
         appBarTheme: const AppBarTheme(
           centerTitle: false,

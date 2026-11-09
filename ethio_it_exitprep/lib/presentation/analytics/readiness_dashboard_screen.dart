@@ -26,7 +26,7 @@ class ReadinessDashboardScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Readiness & Competency Analytics'),
+        title: const Text('Your readiness'),
       ),
       body: FutureBuilder<ReadinessReport>(
         future: analyticsService.generateReport('LOCAL_STUDENT'),
@@ -40,7 +40,7 @@ class ReadinessDashboardScreen extends ConsumerWidget {
 
           final report = snapshot.data!;
           return ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
             children: [
               _buildReadinessCard(context, report),
               const SizedBox(height: 18),
@@ -63,7 +63,7 @@ class ReadinessDashboardScreen extends ConsumerWidget {
     final isPassing = report.overallReadinessScore >= 50.0;
 
     return Card(
-      elevation: 3,
+      color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -72,15 +72,15 @@ class ReadinessDashboardScreen extends ConsumerWidget {
             Row(
               children: [
                 SizedBox(
-                  width: 76,
-                  height: 76,
+                  width: 92,
+                  height: 92,
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
                       CircularProgressIndicator(
                         value: (report.overallReadinessScore / 100).clamp(0.0, 1.0),
-                        strokeWidth: 8,
-                        backgroundColor: Colors.grey.shade200,
+                        strokeWidth: 10,
+                        backgroundColor: const Color(0xFFDDEAE2),
                         color: isReady
                             ? Colors.green.shade700
                             : isPassing
@@ -90,7 +90,7 @@ class ReadinessDashboardScreen extends ConsumerWidget {
                       Center(
                         child: Text(
                           '${report.overallReadinessScore.toInt()}%',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 20, color: Color(0xFF17211D)),
                         ),
                       ),
                     ],
@@ -102,7 +102,7 @@ class ReadinessDashboardScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'National Exam Readiness',
+                        'Exam readiness',
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       const SizedBox(height: 4),
@@ -124,8 +124,8 @@ class ReadinessDashboardScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 6),
                       const Text(
-                        'Calculated based on MoE blueprint 5-theme weighted scores.',
-                        style: TextStyle(fontSize: 11, color: Colors.grey),
+                        'Across 5 themes and 13 core courses.',
+                        style: TextStyle(fontSize: 11, color: Color(0xFF6C7A73)),
                       ),
                     ],
                   ),

@@ -48,14 +48,30 @@ class EthioExitPrepApp extends StatelessWidget {
       routerConfig: appRouter,
       theme: ThemeData(
         useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFFF4F7F5),
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF0F5132), // Academic Emerald
           secondary: const Color(0xFFD97706), // Academic Amber
           brightness: Brightness.light,
         ),
+        cardTheme: CardTheme(
+          color: Colors.white,
+          elevation: 0,
+          margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        ),
+        dividerTheme: const DividerThemeData(space: 1, thickness: 1, color: Color(0xFFE2E9E5)),
+        textTheme: const TextTheme(
+          headlineSmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: Color(0xFF17211D)),
+          titleLarge: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: Color(0xFF17211D)),
+          titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF17211D)),
+          bodyMedium: TextStyle(fontSize: 14, height: 1.4, color: Color(0xFF53615B)),
+        ),
         appBarTheme: const AppBarTheme(
           centerTitle: false,
           elevation: 0,
+          backgroundColor: Color(0xFFF4F7F5),
+          surfaceTintColor: Colors.transparent,
         ),
       ),
     );

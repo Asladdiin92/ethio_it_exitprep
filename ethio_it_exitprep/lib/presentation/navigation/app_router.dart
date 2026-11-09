@@ -13,6 +13,8 @@ import 'package:ethio_it_exitprep/presentation/exam/exam_review_screen.dart';
 import 'package:ethio_it_exitprep/presentation/analytics/readiness_dashboard_screen.dart';
 import 'package:ethio_it_exitprep/presentation/study/study_material_reader.dart';
 import 'package:ethio_it_exitprep/presentation/study/related_concepts_sheet.dart';
+import 'package:ethio_it_exitprep/presentation/study/modules_screen.dart';
+import 'package:ethio_it_exitprep/presentation/study/course_reading_material_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/exam',
@@ -24,8 +26,13 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/study',
       name: 'study',
-      builder: (context, state) => const _AppShellPlaceholder(
-        title: 'Study Modules & Reading',
+      builder: (context, state) => const ModulesScreen(),
+    ),
+    GoRoute(
+      path: '/study/course/:courseId',
+      name: 'study-course',
+      builder: (context, state) => CourseReadingMaterialScreen(
+        courseId: state.pathParameters['courseId'] ?? 'C01',
       ),
     ),
     GoRoute(

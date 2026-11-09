@@ -35,6 +35,9 @@ class SyncService {
     }
 
     try {
+      final currentProgress = await progressRepo.getOrCreate(studentId);
+      var cycleSucceeded = true;
+
       // 1. Upstream: Push unsynced exam attempts
       final unsyncedAttempts = await progressRepo.getUnsyncedAttempts(studentId);
       if (unsyncedAttempts.isNotEmpty) {
@@ -42,6 +45,7 @@ class SyncService {
               'entityType': 'exam_attempt',
               'attemptId': a.attemptId,
               'studentId': a.studentId,
+              'startedAt': a.startedAt.toIso8601String(),
               'scorePercent': a.scorePercent,
               'totalQuestions': a.totalQuestions,
               'correctAnswers': a.correctAnswers,
@@ -49,16 +53,17 @@ class SyncService {
               'answerMap': a.answerMap,
             }).toList();
 
-        final pushSuccess = await apiClient.pushOutbox(mutations);
-        if (pushSuccess) {
-          for (final a in unsyncedAttempts) {
-            await progressRepo.markAttemptSynced(a.attemptId);
-          }
+        final pushResponse = await apiClient.pushOutbox(mutations);
+        for (final attemptId in pushResponse.syncedAttemptIds) {
+          await progressRepo.markAttemptSynced(attemptId);
+        }
+        if (pushResponse.rejected.isNotEmpty) {
+          cycleSucceeded = false;
         }
       }
 
       // 2. Downstream: Pull curriculum delta
-      final watermark = lastSyncTime ?? DateTime(2025, 1, 1);
+      final watermark = lastSyncTime ?? currentProgress.lastSynced;
       final delta = await apiClient.pullDelta(watermark);
 
       // Merge updated study materials
@@ -74,17 +79,20 @@ class SyncService {
       }
 
       // Remove deleted entities if any
-      for (final id in delta.deletedIds) {
-        await materialRepo.deleteById(id);
+      for (final deleted in delta.deletedEntities) {
+        if (deleted.entityType == 'material') {
+          await materialRepo.deleteById(deleted.entityId);
+        } else if (deleted.entityType == 'question') {
+          await questionRepo.deleteById(deleted.entityId);
+        }
       }
 
       // Update student last_synced timestamp
-      final currentProgress = await progressRepo.getOrCreate(studentId);
       await progressRepo.saveProgress(currentProgress.copyWith(
         lastSynced: delta.serverTimestamp,
       ));
 
-      return true;
+      return cycleSucceeded;
     } catch (_) {
       // Graceful error handling in case of connection drop
       return false;

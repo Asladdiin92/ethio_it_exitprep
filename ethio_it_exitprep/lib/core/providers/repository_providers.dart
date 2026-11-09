@@ -6,6 +6,8 @@ import 'package:ethio_it_exitprep/data/local/database.dart';
 import 'package:ethio_it_exitprep/data/repositories/local_simple_repositories.dart';
 import 'package:ethio_it_exitprep/data/repositories/local_study_material_repository.dart';
 import 'package:ethio_it_exitprep/data/repositories/local_question_repository.dart';
+import 'package:ethio_it_exitprep/data/remote/sync_api.dart';
+import 'package:ethio_it_exitprep/data/remote/sync_service.dart';
 import 'package:ethio_it_exitprep/domain/repositories/curriculum_repository.dart';
 
 // ── Database Provider ─────────────────────────────────────────────────────────
@@ -44,4 +46,18 @@ final questionOptionRepositoryProvider = Provider<QuestionOptionRepository>((ref
 
 final studentProgressRepositoryProvider = Provider<StudentProgressRepository>((ref) {
   return LocalStudentProgressRepository(ref.watch(appDatabaseProvider));
+});
+
+// Override this provider from the authenticated app shell; null keeps cloud sync disabled.
+final syncAuthTokenProvider = Provider<String?>((ref) => null);
+
+final syncServiceProvider = Provider<SyncService>((ref) {
+  return SyncService(
+    apiClient: SyncApiClient(
+      authTokenProvider: () => ref.read(syncAuthTokenProvider),
+    ),
+    materialRepo: ref.watch(studyMaterialRepositoryProvider),
+    questionRepo: ref.watch(questionRepositoryProvider),
+    progressRepo: ref.watch(studentProgressRepositoryProvider),
+  );
 });

@@ -6,6 +6,8 @@ import 'learning_entity.dart';
 class Course extends LearningEntity {
   final String themeId;
   final String courseCode;
+  final int courseYear;
+  final int semester;
   final int creditHours;
   final double examWeightPct;
   final String priorityLevel; // P1 | P2 | P3
@@ -19,6 +21,8 @@ class Course extends LearningEntity {
     super.customAttributes,
     required this.themeId,
     required this.courseCode,
+    this.courseYear = 1,
+    this.semester = 1,
     required this.creditHours,
     required this.examWeightPct,
     required this.priorityLevel,
@@ -31,6 +35,8 @@ class Course extends LearningEntity {
         'description': description,
         'themeId': themeId,
         'courseCode': courseCode,
+        'courseYear': courseYear,
+        'semester': semester,
         'creditHours': creditHours,
         'examWeightPct': examWeightPct,
         'priorityLevel': priorityLevel,
@@ -45,6 +51,8 @@ class Course extends LearningEntity {
         description: json['description'] as String?,
         themeId: json['themeId'] as String,
         courseCode: json['courseCode'] as String,
+        courseYear: (json['courseYear'] ?? json['year'] ?? 1) as int,
+        semester: (json['semester'] ?? 1) as int,
         creditHours: json['creditHours'] as int,
         examWeightPct: (json['examWeightPct'] as num).toDouble(),
         priorityLevel: json['priorityLevel'] as String,
@@ -59,6 +67,8 @@ class Course extends LearningEntity {
     String? description,
     String? themeId,
     String? courseCode,
+    int? courseYear,
+    int? semester,
     int? creditHours,
     double? examWeightPct,
     String? priorityLevel,
@@ -72,6 +82,8 @@ class Course extends LearningEntity {
         description: description ?? this.description,
         themeId: themeId ?? this.themeId,
         courseCode: courseCode ?? this.courseCode,
+        courseYear: courseYear ?? this.courseYear,
+        semester: semester ?? this.semester,
         creditHours: creditHours ?? this.creditHours,
         examWeightPct: examWeightPct ?? this.examWeightPct,
         priorityLevel: priorityLevel ?? this.priorityLevel,

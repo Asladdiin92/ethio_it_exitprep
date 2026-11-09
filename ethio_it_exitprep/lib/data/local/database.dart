@@ -66,6 +66,7 @@ class AppDatabase {
     await _executor.customStatement('PRAGMA foreign_keys = ON;');
     await _executor.customStatement('PRAGMA journal_mode = WAL;');
     await _createTables();
+    await _migrateCourseColumns();
     await _createIndexes();
     await _createFts5Table();
     _initialized = true;
@@ -92,6 +93,8 @@ class AppDatabase {
         course_code TEXT NOT NULL,
         title TEXT NOT NULL,
         description TEXT,
+        course_year INTEGER DEFAULT 1,
+        semester INTEGER DEFAULT 1,
         credit_hours INTEGER DEFAULT 3,
         exam_weight_pct REAL DEFAULT 0.0,
         priority_level TEXT DEFAULT 'P2',
@@ -206,6 +209,19 @@ class AppDatabase {
         sent INTEGER DEFAULT 0
       );
     ''');
+  }
+
+  Future<void> _migrateCourseColumns() async {
+    for (final statement in [
+      'ALTER TABLE courses ADD COLUMN course_year INTEGER DEFAULT 1;',
+      'ALTER TABLE courses ADD COLUMN semester INTEGER DEFAULT 1;',
+    ]) {
+      try {
+        await _executor.customStatement(statement);
+      } catch (_) {
+        // Existing databases already have these columns.
+      }
+    }
   }
 
   Future<void> _createIndexes() async {

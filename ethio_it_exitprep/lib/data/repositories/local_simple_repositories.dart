@@ -82,6 +82,8 @@ class LocalCourseRepository implements CourseRepository {
         description: r['description'] as String?,
         themeId: r['theme_id'] as String,
         courseCode: r['course_code'] as String,
+        courseYear: (r['course_year'] as int?) ?? 1,
+        semester: (r['semester'] as int?) ?? 1,
         creditHours: r['credit_hours'] as int,
         examWeightPct: (r['exam_weight_pct'] as num).toDouble(),
         priorityLevel: r['priority_level'] as String,
@@ -118,12 +120,13 @@ class LocalCourseRepository implements CourseRepository {
   Future<void> upsert(Course c) async {
     await _db.execute('''
       INSERT OR REPLACE INTO courses
-        (id, theme_id, course_code, title, description, credit_hours,
+        (id, theme_id, course_code, title, description, course_year, semester, credit_hours,
          exam_weight_pct, priority_level, custom_attributes,
          created_at, updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?);
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);
     ''', [
       c.id, c.themeId, c.courseCode, c.title, c.description,
+      c.courseYear, c.semester,
       c.creditHours, c.examWeightPct, c.priorityLevel,
       jsonEncode(c.customAttributes),
       c.createdAt.toIso8601String(), c.updatedAt.toIso8601String(),

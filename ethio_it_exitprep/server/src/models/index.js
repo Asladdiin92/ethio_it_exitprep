@@ -21,6 +21,8 @@ const CourseSchema = new mongoose.Schema({
   courseCode: { type: String, required: true },
   title: { type: String, required: true },
   description: String,
+  courseYear: { type: Number, default: 1, min: 1 },
+  semester: { type: Number, default: 1, min: 1, max: 2 },
   creditHours: { type: Number, default: 3 },
   examWeightPct: { type: Number, default: 0.0 },
   priorityLevel: { type: String, default: 'P2' },
@@ -105,6 +107,14 @@ const ExamAttemptSchema = new mongoose.Schema({
   answerMap: { type: mongoose.Schema.Types.Mixed, default: {} },
 }, { timestamps: true });
 
+const DeletedEntitySchema = new mongoose.Schema({
+  entityType: { type: String, enum: ['material', 'question'], required: true },
+  entityId: { type: String, required: true },
+  deletedAt: { type: Date, required: true, default: Date.now },
+}, { timestamps: false });
+
+DeletedEntitySchema.index({ deletedAt: 1 });
+
 module.exports = {
   Theme: mongoose.model('ProgramTheme', ThemeSchema),
   Course: mongoose.model('Course', CourseSchema),
@@ -114,4 +124,5 @@ module.exports = {
   Question: mongoose.model('Question', QuestionSchema),
   QuestionOption: mongoose.model('QuestionOption', QuestionOptionSchema),
   ExamAttempt: mongoose.model('ExamAttempt', ExamAttemptSchema),
+  DeletedEntity: mongoose.model('DeletedEntity', DeletedEntitySchema),
 };

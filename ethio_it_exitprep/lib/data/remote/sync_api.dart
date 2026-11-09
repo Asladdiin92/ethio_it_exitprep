@@ -9,20 +9,53 @@ class SyncDeltaResponse {
   final DateTime serverTimestamp;
   final List<Map<String, dynamic>> updatedMaterials;
   final List<Map<String, dynamic>> updatedQuestions;
-  final List<String> deletedIds;
+  final List<DeletedEntity> deletedEntities;
 
   const SyncDeltaResponse({
     required this.serverTimestamp,
     required this.updatedMaterials,
     required this.updatedQuestions,
-    required this.deletedIds,
+    required this.deletedEntities,
   });
 
   factory SyncDeltaResponse.fromJson(Map<String, dynamic> json) => SyncDeltaResponse(
         serverTimestamp: DateTime.parse(json['serverTimestamp'] as String),
         updatedMaterials: List<Map<String, dynamic>>.from(json['updatedMaterials'] ?? []),
         updatedQuestions: List<Map<String, dynamic>>.from(json['updatedQuestions'] ?? []),
-        deletedIds: List<String>.from(json['deletedIds'] ?? []),
+        deletedEntities: (json['deletedEntities'] ?? json['deletedIds'] ?? [])
+            .map<DeletedEntity>((entry) => entry is String
+                ? DeletedEntity(entityType: 'material', entityId: entry)
+                : DeletedEntity.fromJson(Map<String, dynamic>.from(entry as Map)))
+            .toList(),
+      );
+}
+
+class DeletedEntity {
+  final String entityType;
+  final String entityId;
+
+  const DeletedEntity({required this.entityType, required this.entityId});
+
+  factory DeletedEntity.fromJson(Map<String, dynamic> json) => DeletedEntity(
+        entityType: json['entityType'] as String,
+        entityId: (json['entityId'] ?? json['id']) as String,
+      );
+}
+
+class SyncPushResponse {
+  final List<String> syncedAttemptIds;
+  final List<Map<String, dynamic>> rejected;
+
+  const SyncPushResponse({required this.syncedAttemptIds, required this.rejected});
+
+  factory SyncPushResponse.fromJson(Map<String, dynamic> json) => SyncPushResponse(
+        syncedAttemptIds: (json['results'] as List<dynamic>? ?? [])
+            .whereType<Map<String, dynamic>>()
+            .map((result) => result['attemptId'] as String)
+            .toList(),
+        rejected: (json['rejected'] as List<dynamic>? ?? [])
+            .whereType<Map<String, dynamic>>()
+            .toList(),
       );
 }
 
@@ -60,7 +93,7 @@ class SyncApiClient {
   }
 
   /// Push local outbox mutations (exam attempts, progress logs) to MongoDB Atlas API.
-  Future<bool> pushOutbox(List<Map<String, dynamic>> mutations) async {
+  Future<SyncPushResponse> pushOutbox(List<Map<String, dynamic>> mutations) async {
     final uri = Uri.parse('$baseUrl/sync/push');
     final response = await _client.post(
       uri,
@@ -68,6 +101,9 @@ class SyncApiClient {
       body: jsonEncode({'mutations': mutations}),
     );
 
-    return response.statusCode == 200;
+    if (response.statusCode != 200 && response.statusCode != 207) {
+      throw Exception('Outbox push failed: ${response.statusCode} - ${response.body}');
+    }
+    return SyncPushResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 }

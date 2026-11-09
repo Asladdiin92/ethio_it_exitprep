@@ -158,7 +158,7 @@ void main() {
       final response = SyncDeltaResponse.fromJson(json);
       expect(response.updatedMaterials.length, 1);
       expect(response.updatedMaterials.first['title'], 'Cloud Note');
-      expect(response.deletedIds, contains('OLD_ITEM_01'));
+      expect(response.deletedEntities.first.entityId, 'OLD_ITEM_01');
     });
   });
 

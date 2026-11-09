@@ -1,0 +1,1 @@
+update UI/UX design to showcase the dedicated Course Reading Material screen in the center, which opens when a student taps any of the five core theme cards on the Home screen or selects the Modules tab in the bottom navigation bar.

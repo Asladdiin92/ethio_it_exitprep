@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 const app = require('./src/app');
 
 const PORT = process.env.PORT || 4000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/ethio_it_exitprep';
+const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/ethio_it_exitprep';
 
 async function bootstrap() {
   try {

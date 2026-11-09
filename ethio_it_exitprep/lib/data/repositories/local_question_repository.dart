@@ -141,6 +141,14 @@ class LocalQuestionRepository implements QuestionRepository {
     }
   }
 
+  @override
+  Future<void> deleteById(String id) async {
+    await _db.execute(
+      'DELETE FROM questions WHERE id = ?;',
+      [Variable.withString(id)],
+    );
+  }
+
   String _questionSortSql(CurriculumSortOrder sort) {
     switch (sort) {
       case CurriculumSortOrder.priorityDesc:

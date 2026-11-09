@@ -79,7 +79,9 @@ class MockExamSimulatorScreen extends ConsumerWidget {
             // Progress Bar
             LinearProgressIndicator(
               value: (session.currentIndex + 1) / session.totalQuestions,
-              backgroundColor: Colors.grey.shade200,
+              minHeight: 5,
+              color: const Color(0xFF0F7A51),
+              backgroundColor: const Color(0xFFDCE8E1),
             ),
             Expanded(
               child: ListView(
@@ -122,8 +124,8 @@ class MockExamSimulatorScreen extends ConsumerWidget {
                   Card(
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(18),
+                      side: const BorderSide(color: Color(0xFFDDE7E1)),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(18),

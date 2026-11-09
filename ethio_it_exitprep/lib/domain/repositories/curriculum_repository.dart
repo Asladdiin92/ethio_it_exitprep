@@ -74,6 +74,7 @@ abstract class QuestionRepository {
   Future<Question?> getById(String id);
   Future<void> upsert(Question question);
   Future<void> upsertAll(List<Question> questions);
+  Future<void> deleteById(String id);
 }
 
 // ── QuestionOption ────────────────────────────────────────────────────────────
